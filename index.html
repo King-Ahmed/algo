@@ -111,9 +111,9 @@
             if (!isCameraOn) {
                 setupCamera(); // Allumez la webcam si elle n'est pas déjà allumée
             }
-            await faceapi.nets.tinyFaceDetector.loadFromUri('http://localhost:8000/face-api.js-0.22.2/weights');
-            await faceapi.nets.faceLandmark68Net.loadFromUri('http://localhost:8000/face-api.js-0.22.2/weights');
-            await faceapi.nets.faceRecognitionNet.loadFromUri('http://localhost:8000/face-api.js-0.22.2/weights');
+            await faceapi.nets.tinyFaceDetector.loadFromUri('https://king-ahmed.github.io/algo/');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('https://king-ahmed.github.io/algo/');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('https://king-ahmed.github.io/algo/');
 
             video.play();
 
@@ -146,6 +146,6 @@
     </script>
 
     <!-- Inclure face-api.js -->
-    <script src="node_modules/face-api.js/dist/face-api.js"></script>
+    <script src="https://king-ahmed.github.io/algo/face-api.js"></script>
 </body>
 </html>
