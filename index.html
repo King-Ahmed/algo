@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ahmed Algorithme</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            display: flex;
+            flex-direction: column; /* Au lieu de "row" pour les smartphones */
+            align-items: center; /* Centrer le contenu sur les smartphones */
+        }
+        #video-container, #result-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centrer le contenu sur les smartphones */
+        }
+        #video {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #000;
+        }
+        #canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #000;
+        }
+        #control-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centrer le contenu sur les smartphones */
+            margin-top: 10px; /* Espacement entre les boutons */
+        }
+        button {
+            margin: 5px; /* Espacement entre les boutons */
+        }
+        #info-container {
+            text-align: center; /* Centrer le texte dans le conteneur */
+            margin: 10px; /* Espacement du conteneur */
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-center" style="color: green">---Ahmed 3D Algorithme (TEST)</h1>
+	<div id="container">
+        <div id="video-container">
+            <video id="video" autoplay playsinline></video>
+        </div>
+        <div id="result-container">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div id="control-container">
+            <button id="startButton">Demarrer</button>
+            <button id="stopButton">Arreter</button>
+            <button id="trackButton">Suivi de visage</button>
+			<canvas id="myCanvas" willReadFrequently="true"></canvas>
+        </div>
+    </div>
+    <div id="info-container">
+        <div id="info"></div>
+	</div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const info = document.getElementById('info');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const trackButton = document.getElementById('trackButton');
+
+        let isTracking = false;
+        let isCameraOn = false; // Nouvelle variable pour suivre l'état de la webcam
+        let videoStream;
+
+        async function setupCamera() {
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = videoStream;
+            // Attendre que la vidéo soit chargée pour obtenir les dimensions
+            await new Promise(resolve => video.onloadedmetadata = resolve);
+            isCameraOn = true; // Marquez la webcam comme étant allumée
+        }
+
+        startButton.addEventListener('click', () => {
+            setupCamera();
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (isCameraOn) {
+                videoStream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                isCameraOn = false; // Marquez la webcam comme étant éteinte
+            }
+        });
+
+        trackButton.addEventListener('click', () => {
+            isTracking = !isTracking;
+            if (isTracking) {
+                
+                startFaceTracking();
+            } else {
+                trackButton.textContent = 'Demarrer le suivi';
+                
+            }
+        });
+
+        async function startFaceTracking() {
+            if (!isCameraOn) {
+                setupCamera(); // Allumez la webcam si elle n'est pas déjà allumée
+            }
+            await faceapi.nets.tinyFaceDetector.loadFromUri('http://localhost:8000/face-api.js-0.22.2/weights');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('http://localhost:8000/face-api.js-0.22.2/weights');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('http://localhost:8000/face-api.js-0.22.2/weights');
+
+            video.play();
+
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            const canvasContext = canvas.getContext('2d');
+
+            setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                canvasContext.clearRect(0, 0, displaySize.width, displaySize.height);
+                faceapi.draw.drawDetections(canvas, resizedDetections);
+                faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+            }, 100);
+
+            info.innerText = 'Suivi de visage demarre';
+        }
+
+        function stopFaceTracking() {
+            if (isTracking) {
+                // Arrêtez le suivi du visage seulement si le suivi est en cours
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                info.innerText = 'Suivi de visage arrêté';
+            }
+        }
+    </script>
+
+    <!-- Inclure face-api.js -->
+    <script src="node_modules/face-api.js/dist/face-api.js"></script>
+</body>
+</html>
